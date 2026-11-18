@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d19">
+<title>DRIVELOADER</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #080d19;
+  color: #f5f7ff;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  padding: 22px 16px;
+}
+
+.container {
+  max-width: 520px;
+  margin: auto;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 55px;
+}
+
+.logo {
+  background: #2563eb;
+  width: 45px;
+  height: 45px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+}
+
+.brand {
+  font-size: 19px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.brand span, .hero span {
+  color: #4388ff;
+}
+
+.tagline {
+  color: #8995aa;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.hero h1 {
+  font-size: 30px;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+
+.hero p {
+  color: #929db0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.card {
+  background: #111a2b;
+  border: 1px solid #25334a;
+  padding: 20px;
+  border-radius: 18px;
+  margin-bottom: 18px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  color: #aab5c8;
+  font-size: 12px;
+  margin-bottom: 9px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+input {
+  width: 100%;
+  min-width: 0;
+  background: #080f1e;
+  border: 1px solid #30405a;
+  border-radius: 11px;
+  padding: 15px 12px;
+  color: white;
+  font-size: 13px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #4388ff;
+}
+
+input::placeholder {
+  color: #68758b;
+}
+
+.paste {
+  width: auto;
+  margin: 0;
+  padding: 0 15px;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 11px;
+  padding: 15px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.main-btn {
+  width: 100%;
+  margin-top: 13px;
+}
+
+button:disabled {
+  background: #29374d;
+  color: #8995a8;
+  cursor: not-allowed;
+}
+
+.status {
+  display: none;
+  background: #0c2035;
+  color: #9bcaff;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 13px;
+}
+
+.file-box {
+  text-align: center;
+  border: 1px dashed #35445e;
+  padding: 25px 12px;
+  border-radius: 12px;
+}
+
+.file-icon {
+  font-size: 37px;
+  margin-bottom: 12px;
+}
+
+.file-box p {
+  color: #8b99ae;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.file-info {
+  display: none;
+  text-align: left;
+  margin-top: 15px;
+  font-size: 12px;
+  line-height: 2;
+  color: #aab8ce;
+  overflow-wrap: anywhere;
+}
+
+.history-item {
+  text-align: center;
+  color: #8996aa;
+  font-size: 12px;
+  padding: 18px 0;
+}
+
+footer {
+  text-align: center;
+  color: #68758a;
+  font-size: 11px;
+  line-height: 1.8;
+  margin-top: 35px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <div class="logo">↓</div>
+  <div>
+    <div class="brand">DRIVE<span>LOADER</span></div>
+    <div class="tagline">Simple Google Drive Downloader</div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Download File<br><span>Lebih Mudah.</span></h1>
+  <p>Tempelkan link Google Drive untuk memulai proses download.</p>
+</section>
+
+<section class="card">
+  <div class="card-title">↓ &nbsp; Download File</div>
+
+  <label for="driveLink">Link Google Drive</label>
+
+  <div class="input-row">
+    <input id="driveLink" type="url"
+      placeholder="Tempelkan link Google Drive...">
+    <button class="paste" onclick="pasteLink()">Paste</button>
+  </div>
+
+  <button class="main-btn" onclick="checkLink()">
+    Periksa Link →
+  </button>
+
+  <div class="status" id="status"></div>
+</section>
+
+<section class="card">
+  <div class="card-title">▣ &nbsp; Informasi File</div>
+
+  <div class="file-box">
+    <div class="file-icon">📁</div>
+    <p id="fileMessage">
+      Informasi file akan muncul di sini.<br>
+      Masukkan link Google Drive terlebih dahulu.
+    </p>
+    <div class="file-info" id="fileInfo"></div>
+  </div>
+
+  <button class="main-btn" id="downloadBtn"
+    onclick="downloadFile()" disabled>
+    ↓ &nbsp; Download File
+  </button>
+</section>
+
+<section class="card">
+  <div class="card-title">◷ &nbsp; Riwayat Download</div>
+  <div id="history" class="history-item">
+    Belum ada riwayat.
+  </div>
+</section>
+
+<footer>
+  DRIVELOADER © 2026<br>
+  Simple • Fast • Easy to Use
+</footer>
+
+</div>
+
+<script>
+let currentFileId = null;
+
+function getFileId(link) {
+  try {
+    const url = new URL(link.trim());
+
+    if (
+      url.protocol !== "https:" ||
+      !["drive.google.com", "docs.google.com"]
+        .includes(url.hostname.toLowerCase())
+    ) return null;
+
+    const match = url.pathname.match(
+      /\/(?:file|document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/
+    );
+
+    if (match) return match[1];
+
+    if (url.hostname === "drive.google.com") {
+      const id = url.searchParams.get("id");
+      if (
+        ["/open", "/uc"].includes(url.pathname) &&
+        id && /^[a-zA-Z0-9_-]+$/.test(id)
+      ) return id;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function pasteLink() {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById("driveLink").value = text;
+  } catch {
+    showStatus("Silakan tekan kolom dan pilih Tempel secara manual.");
+  }
+}
+
+function showStatus(message) {
+  const status = document.getElementById("status");
+  status.style.display = "block";
+  status.textContent = message;
+}
+
+function checkLink() {
+  const link = document.getElementById("driveLink").value.trim();
+  const id = getFileId(link);
+
+  currentFileId = null;
+  document.getElementById("downloadBtn").disabled = true;
+  document.getElementById("fileInfo").style.display = "none";
+
+  if (!link) {
+    showStatus("Silakan masukkan link Google Drive.");
+    return;
+  }
+
+  if (!id) {
+    showStatus("Link tidak valid. Periksa kembali link Google Drive.");
+    return;
+  }
+
+  currentFileId = id;
+
+  document.getElementById("fileMessage").textContent =
+    "ID file berhasil dikenali. Informasi nama dan ukuran file belum diperiksa.";
+
+  document.getElementById("fileInfo").style.display = "block";
+  document.getElementById("fileInfo").innerHTML =
+    "<b>ID File:</b> " + escapeHTML(id) +
+    "<br><b>Status:</b> Link berhasil dikenali";
+
+  document.getElementById("downloadBtn").disabled = false;
+
+  showStatus("Link berhasil dikenali. Silakan coba download jika file memiliki izin akses.");
+}
+
+function escapeHTML(text) {
+  return text.replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function downloadFile() {
+  if (!currentFileId) return;
+
+  const link =
+    "https://drive.google.com/uc?export=download&id=" +
+    encodeURIComponent(currentFileId);
+
+  const a = document.createElement("a");
+  a.href = link;
+  a.target = "_blank";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  saveHistory(currentFileId);
+
+  showStatus("Permintaan download dibuka. Ikuti konfirmasi Google Drive jika muncul.");
+}
+
+function saveHistory(id) {
+  let history = JSON.parse(
+    localStorage.getItem("driveloader_history") || "[]"
+  );
+
+  history = history.filter(item => item !== id);
+  history.unshift(id);
+
+  localStorage.setItem(
+    "driveloader_history",
+    JSON.stringify(history.slice(0, 10))
+  );
+
+  renderHistory();
+}
+
+function renderHistory() {
+  const history = JSON.parse(
+    localStorage.getItem("driveloader_history") || "[]"
+  );
+
+  const box = document.getElementById("history");
+
+  if (!history.length) {
+    box.textContent = "Belum ada riwayat.";
+    return;
+  }
+
+  box.innerHTML = history.map(id =>
+    "<div style='padding:10px;border-bottom:1px solid #25334a'>" +
+    escapeHTML(id) + "</div>"
+  ).join("");
+}
+
+renderHistory();
+</script>
+
+</body>
+</html>
