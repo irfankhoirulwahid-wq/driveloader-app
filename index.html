@@ -238,186 +238,212 @@ footer {
   </button>
 
   <div class="status" id="status"></div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1769e0">
+<title>Drive Media Downloader</title>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f6fc;
+  color: #172b4d;
+}
+
+header {
+  background: #1769e0;
+  color: white;
+  padding: 28px 16px;
+  text-align: center;
+}
+
+header h1 { font-size: 23px; }
+header p { font-size: 13px; }
+
+.container {
+  max-width: 480px;
+  margin: 30px auto;
+  padding: 0 16px;
+}
+
+.panel {
+  background: white;
+  border-radius: 18px;
+  padding: 23px;
+  box-shadow: 0 5px 20px #0000000c;
+  margin-bottom: 18px;
+}
+
+h2 { font-size: 19px; }
+
+p {
+  font-size: 13px;
+  color: #718096;
+  line-height: 1.6;
+}
+
+button {
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.login {
+  background: #1769e0;
+  color: white;
+}
+
+.logout {
+  background: #e8f1ff;
+  color: #1769e0;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #d5deeb;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+#status {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 15px;
+}
+
+.hidden { display: none; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>☁ Drive Media Downloader</h1>
+  <p>Download media Google Drive dengan mudah</p>
+</header>
+
+<main class="container">
+
+<section class="panel">
+  <h2>Hubungkan Google Drive</h2>
+  <p>
+    Login menggunakan akun Google yang memiliki
+    izin mengakses file Drive.
+  </p>
+
+  <button class="login" onclick="loginGoogle()">
+    Masuk dengan Google
+  </button>
+
+  <button class="logout hidden" id="logout"
+    onclick="logoutGoogle()">
+    Keluar dari Google
+  </button>
+
+  <div id="status">
+    Belum terhubung dengan Google.
+  </div>
 </section>
 
-<section class="card">
-  <div class="card-title">▣ &nbsp; Informasi File</div>
+<section class="panel">
+  <h2>Masukkan Link Google Drive</h2>
+  <p>Fitur pemeriksaan file akan diaktifkan setelah login berhasil.</p>
 
-  <div class="file-box">
-    <div class="file-icon">📁</div>
-    <p id="fileMessage">
-      Informasi file akan muncul di sini.<br>
-      Masukkan link Google Drive terlebih dahulu.
-    </p>
-    <div class="file-info" id="fileInfo"></div>
-  </div>
+  <input id="driveLink"
+    type="url"
+    placeholder="Tempel link Google Drive...">
 
-  <button class="main-btn" id="downloadBtn"
-    onclick="downloadFile()" disabled>
-    ↓ &nbsp; Download File
+  <button class="login" onclick="checkConnection()">
+    Periksa Koneksi
   </button>
 </section>
 
-<section class="card">
-  <div class="card-title">◷ &nbsp; Riwayat Download</div>
-  <div id="history" class="history-item">
-    Belum ada riwayat.
-  </div>
-</section>
-
-<footer>
-  DRIVELOADER © 2026<br>
-  Simple • Fast • Easy to Use
-</footer>
-
-</div>
+</main>
 
 <script>
-let currentFileId = null;
+const CLIENT_ID = "69637949707-scbc5kc53tt44lfa810hi1i0ar9jffkc.apps.googleusercontent.com";
 
-function getFileId(link) {
-  try {
-    const url = new URL(link.trim());
+const SCOPES =
+  "https://www.googleapis.com/auth/drive.readonly";
 
-    if (
-      url.protocol !== "https:" ||
-      !["drive.google.com", "docs.google.com"]
-        .includes(url.hostname.toLowerCase())
-    ) return null;
+let accessToken = null;
+let tokenClient = null;
 
-    const match = url.pathname.match(
-      /\/(?:file|document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/
-    );
-
-    if (match) return match[1];
-
-    if (url.hostname === "drive.google.com") {
-      const id = url.searchParams.get("id");
-      if (
-        ["/open", "/uc"].includes(url.pathname) &&
-        id && /^[a-zA-Z0-9_-]+$/.test(id)
-      ) return id;
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-async function pasteLink() {
-  try {
-    const text = await navigator.clipboard.readText();
-    document.getElementById("driveLink").value = text;
-  } catch {
-    showStatus("Silakan tekan kolom dan pilih Tempel secara manual.");
-  }
-}
-
-function showStatus(message) {
-  const status = document.getElementById("status");
-  status.style.display = "block";
-  status.textContent = message;
-}
-
-function checkLink() {
-  const link = document.getElementById("driveLink").value.trim();
-  const id = getFileId(link);
-
-  currentFileId = null;
-  document.getElementById("downloadBtn").disabled = true;
-  document.getElementById("fileInfo").style.display = "none";
-
-  if (!link) {
-    showStatus("Silakan masukkan link Google Drive.");
+window.onload = function() {
+  if (CLIENT_ID.startsWith("TEMPEL_")) {
+    document.getElementById("status").textContent =
+      "Masukkan OAuth Client ID terlebih dahulu.";
     return;
   }
 
-  if (!id) {
-    showStatus("Link tidak valid. Periksa kembali link Google Drive.");
+  if (window.google) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: function(response) {
+        if (response.error) {
+          document.getElementById("status").textContent =
+            "Login gagal: " + response.error;
+          return;
+        }
+
+        accessToken = response.access_token;
+
+        document.getElementById("status").textContent =
+          "Berhasil terhubung dengan Google!";
+
+        document.getElementById("logout")
+          .classList.remove("hidden");
+      }
+    });
+  }
+};
+
+function loginGoogle() {
+  if (!tokenClient) {
+    document.getElementById("status").textContent =
+      "Google belum siap. Muat ulang halaman beberapa saat lagi.";
     return;
   }
 
-  currentFileId = id;
-
-  document.getElementById("fileMessage").textContent =
-    "ID file berhasil dikenali. Informasi nama dan ukuran file belum diperiksa.";
-
-  document.getElementById("fileInfo").style.display = "block";
-  document.getElementById("fileInfo").innerHTML =
-    "<b>ID File:</b> " + escapeHTML(id) +
-    "<br><b>Status:</b> Link berhasil dikenali";
-
-  document.getElementById("downloadBtn").disabled = false;
-
-  showStatus("Link berhasil dikenali. Silakan coba download jika file memiliki izin akses.");
+  tokenClient.requestAccessToken();
 }
 
-function escapeHTML(text) {
-  return text.replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
-}
-
-function downloadFile() {
-  if (!currentFileId) return;
-
-  const link =
-    "https://drive.google.com/uc?export=download&id=" +
-    encodeURIComponent(currentFileId);
-
-  const a = document.createElement("a");
-  a.href = link;
-  a.target = "_blank";
-  a.rel = "noopener";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  saveHistory(currentFileId);
-
-  showStatus("Permintaan download dibuka. Ikuti konfirmasi Google Drive jika muncul.");
-}
-
-function saveHistory(id) {
-  let history = JSON.parse(
-    localStorage.getItem("driveloader_history") || "[]"
-  );
-
-  history = history.filter(item => item !== id);
-  history.unshift(id);
-
-  localStorage.setItem(
-    "driveloader_history",
-    JSON.stringify(history.slice(0, 10))
-  );
-
-  renderHistory();
-}
-
-function renderHistory() {
-  const history = JSON.parse(
-    localStorage.getItem("driveloader_history") || "[]"
-  );
-
-  const box = document.getElementById("history");
-
-  if (!history.length) {
-    box.textContent = "Belum ada riwayat.";
-    return;
+function logoutGoogle() {
+  if (accessToken && window.google) {
+    google.accounts.oauth2.revoke(accessToken);
   }
 
-  box.innerHTML = history.map(id =>
-    "<div style='padding:10px;border-bottom:1px solid #25334a'>" +
-    escapeHTML(id) + "</div>"
-  ).join("");
+  accessToken = null;
+
+  document.getElementById("status").textContent =
+    "Koneksi Google telah dihentikan.";
+
+  document.getElementById("logout")
+    .classList.add("hidden");
 }
 
-renderHistory();
+function checkConnection() {
+  document.getElementById("status").textContent =
+    accessToken
+      ? "Koneksi Google aktif dan siap digunakan."
+      : "Silakan login Google terlebih dahulu.";
+}
 </script>
 
 </body>
